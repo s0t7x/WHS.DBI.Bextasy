@@ -158,5 +158,6 @@ public class LoadDriver extends Thread {
 		float tps = (float) transactionCount / (float) (benchmarkTime / 1000);
 		// And prints
 		System.out.println("TPS: " + tps);
+		System.out.println("TXs: w" + transactionCount);
 	}
 }
