@@ -23,7 +23,7 @@ From "DBI: Aufgabenblatt 5": "[...] in einem Load-Driver-Programm, das 10 Minute
 
 "Ausschwingphase" Does transactions for 1 minute WITHOUT counting!
 
-## `@SuppressWarnings("static-access")  private void Transaction() throws SQLException`
+## `private void Transaction() throws SQLException`
 
 Either does "getBalance(accid)", "Deposit(...)" or "Analyse(delta)" depending on a chance of 35/50/15 From "DBI: Aufgabenblatt 5": "Die relative Gewichtung für die zufällige Auswahl der TXs sei dabei (35 zu 50 zu 15) für Kontostands-, Einzahlungs- und Analyse-TXs."
 
@@ -124,7 +124,7 @@ Menu:
 - 2. Connects to localhost database "benchmark" with root and no password which was used to test locally
 - 3. Goes back to "Home Menu"
 
-## `@SuppressWarnings("static-access")  static void _Menu_DatabaseFunctions() throws SQLException, InterruptedException`
+## `static void _Menu_DatabaseFunctions() throws SQLException, InterruptedException`
 
 Menu to do different DBmgmt methods
 
