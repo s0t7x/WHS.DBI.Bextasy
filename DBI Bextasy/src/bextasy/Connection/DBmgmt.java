@@ -46,6 +46,7 @@ public class DBmgmt extends Thread {
 			conn = DriverManager.getConnection(
 					"jdbc:mysql://" + ServerAddress + "/" + DatabaseName + "?allowMultiQueries=true", UserName,
 					Password);
+			conn.setAutoCommit(false);
 			System.out.println("Connection established!");
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -67,6 +68,7 @@ public class DBmgmt extends Thread {
 		ResultSet rs = stmt.executeQuery("SELECT balance FROM accounts WHERE accid=" + accid);
 		if (rs.next())
 			balance = rs.getInt("balance");
+		conn.commit();
 		stmt.close();
 		return balance;
 	}
@@ -105,6 +107,7 @@ public class DBmgmt extends Thread {
 		stmt.executeUpdate("INSERT INTO history(accid, tellerid, delta, branchid, accbalance, cmmnt)" + "VALUES("
 				+ accid + "," + tellerid + "," + delta + "," + branchid + "," + newBalance + ",'" + string30 + "')");
 		stmt.executeQuery("SET FOREIGN_KEY_CHECKS=1");
+		conn.commit();
 		stmt.close();
 		return getBalance(accid);
 	}
@@ -125,6 +128,8 @@ public class DBmgmt extends Thread {
 		ResultSet rs = stmt.executeQuery("SELECT COUNT(*) AS count FROM history WHERE delta=" + delta);
 		if (rs.next())
 			count = rs.getInt("count");
+		conn.commit();
+		conn.close();
 		return count;
 	}
 
