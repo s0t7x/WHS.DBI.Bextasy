@@ -15,7 +15,7 @@ public class Main {
 	static DBmgmt DB_conn_main = null;
 	static Scanner ReadConsole = new Scanner(System.in);
 
-	public static void main(String[] args) throws SQLException {
+	public static void main(String[] args) throws SQLException, InterruptedException {
 		// TODO Auto-generated method stub
 
 		_Menu_Home();
@@ -26,15 +26,16 @@ public class Main {
 	 * several options. This is the Home Menu. From here the user starts and can
 	 * get into other menus.
 	 * 
-	 * Menu: 1. Goes to "Manage Connection" Menu 2. Goes to "Database Functions"
-	 * Menu 3. Starts the Benchmarking 4. Exits application
+	 * Menu: - 1. Goes to "Manage Connection" Menu - 2. Goes to "Database
+	 * Functions" Menu - 3. Starts the Benchmarking 4. Exits application
 	 * 
-	 * Points 2/3 are disabled til the user connected with a database in the
+	 * Points 2/3 are disabled till the user connected with a database in the
 	 * "Manage connection" menu.
 	 * 
 	 * @throws SQLException
+	 * @throws InterruptedException
 	 */
-	static void _Menu_Home() throws SQLException {
+	static void _Menu_Home() throws SQLException, InterruptedException {
 		int selection = 0;
 
 		do {
@@ -74,9 +75,9 @@ public class Main {
 	/**
 	 * Menu to manage Connections and to interact with DBmgmt.
 	 * 
-	 * Menu: 1. Connects / Reconnect to given address, database with given
-	 * credentials 2. Connects to localhost database "benchmark" with root and
-	 * no password 3. Goes back to "Home Menu"
+	 * Menu: - 1. Connects / Reconnect to given address, database with given
+	 * credentials - 2. Connects to localhost database "benchmark" with root and
+	 * no password which was used to test locally - 3. Goes back to "Home Menu"
 	 */
 	static void _Menu_ManageConnection() {
 		// DB_conn_main = new DBmgmt("localhost","benchmark", "root", "");
@@ -94,7 +95,17 @@ public class Main {
 
 			switch (selection) {
 			case 1:
-				System.out.println("");
+				DB_conn_main = null;
+				System.out.print("Server Address: ");
+				String temp_address = ReadConsole.next();
+				System.out.print("Database Name: ");
+				String temp_name = ReadConsole.next();
+				System.out.print("Username: ");
+				String temp_user = ReadConsole.next();
+				System.out.print("Password: ");
+				String temp_pw = ReadConsole.next();
+				DB_conn_main = new DBmgmt(temp_address, temp_name, temp_user, temp_pw);
+				System.out.print("");
 				selection = 3;
 				break;
 			case 2:
@@ -115,15 +126,17 @@ public class Main {
 	/**
 	 * Menu to do different DBmgmt methods
 	 * 
-	 * Menu: 1. Get the Balance of a given ACCID 2. Deposit a specified amount
-	 * to an ACCID 3. Search for an deposit amount in the History
+	 * Menu: - 1. Get the Balance of a given ACCID - 2. Deposit a specified
+	 * amount to an ACCID - 3. Search for an deposit amount in the History - 4.
+	 * Goes back to Home Menu
 	 * 
-	 * Supress "static-acces" warnings, because they are annoying in eclipse...
+	 * Suppress "static-access" warnings, because they are annoying in eclipse...
 	 * 
 	 * @throws SQLException
+	 * @throws InterruptedException
 	 */
 	@SuppressWarnings("static-access")
-	static void _Menu_DatabaseFunctions() throws SQLException {
+	static void _Menu_DatabaseFunctions() throws SQLException, InterruptedException {
 		int selection = 0;
 
 		do {
@@ -134,20 +147,29 @@ public class Main {
 			System.out.print("\nBextasy~> ");
 			selection = ReadConsole.nextInt();
 
+			int accid = 0;
 			switch (selection) {
 			case 1:
 				System.out.print("Enter ACCID: ");
-				int accid = ReadConsole.nextInt();
+				accid = ReadConsole.nextInt();
 				System.out.println("Balance = " + DB_conn_main.getBalance(accid));
 				System.out.println("");
 				break;
 			case 2:
-				_Menu_DatabaseFunctions();
-				System.out.println("");
+				// System.out.print("Could do manual deposit here, but its not coded yet\n");
+				// Above comment is a LIE!!!
+				System.out.print("Enter ACCID: ");
+				int temp_accid = ReadConsole.nextInt();
+				System.out.print("Enter TELLERID: ");
+				int temp_tellerid = ReadConsole.nextInt();
+				System.out.print("Enter BRANCHID: ");
+				int temp_branchid = ReadConsole.nextInt();
+				System.out.print("Enter DELTA: ");
+				int temp_delta = ReadConsole.nextInt();
+				DB_conn_main.Deposit(temp_accid, temp_tellerid, temp_branchid, temp_delta);
 				break;
 			case 3:
-				_Menu_BenchmarkDatabase();
-				System.out.println("");
+				System.out.print("Could do manual analyse here, but its not coded yet\n");
 				break;
 			case 4:
 				break;
@@ -160,11 +182,13 @@ public class Main {
 	}
 
 	/**
-	 * Starts LoadDriver threads on connected Database
+	 * Asks for the amount of threads and starts LoadDriver threads on connected
+	 * Database
 	 * 
 	 * @throws SQLException
+	 * @throws InterruptedException
 	 */
-	static void _Menu_BenchmarkDatabase() throws SQLException {
+	static void _Menu_BenchmarkDatabase() throws SQLException, InterruptedException {
 		System.out.print("Amount of LoadDrivers to execute: ");
 		int drivers = ReadConsole.nextInt();
 		Thread threads[] = new Thread[drivers];
@@ -173,6 +197,11 @@ public class Main {
 			loadDrivers[i] = new LoadDriver(DB_conn_main);
 			threads[i] = new Thread(loadDrivers[i]);
 			threads[i].start();
+		}
+
+		// Waits till all threads finished
+		for (int i = 0; i < drivers; i++) {
+			threads[i].join();
 		}
 	}
 }

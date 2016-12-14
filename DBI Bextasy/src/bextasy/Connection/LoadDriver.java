@@ -4,12 +4,34 @@ import bextasy.Connection.DBmgmt;
 import java.sql.*;
 import java.util.Random;
 
+/**
+ * From "DBI: Aufgabenblatt 5": "[...] in einem Load-Driver-Programm, das 10
+ * Minuten lang in einer Schleife jeweils zufällig gewählt eine der obigen TXs
+ * mit zufällig gewählten, sinnvollen Parametern1 durchführt und dabei die
+ * bekannten ACID-Eigenschaften garantiert. Zwischen zwei einzelnen TXs soll
+ * jeweils eine feste „Nachdenkzeit“ (engl. Think Time) von genau 50 msec
+ * liegen, in der das Benchmark-Programm nach der erfolgreichen Abarbeitung
+ * einer TX einfach wartet, bevor es die nächste Lasttransaktion startet. [...]"
+ * 
+ * @author s0T7x
+ *
+ */
 public class LoadDriver extends Thread {
-	private int thinkTime;
-	private int initTime;
-	private int endTime;
-	private int benchmarkTime;
+	// 50ms Think Time
+	private int thinkTime = 50;
+
+	// 4 Minuten Einschwingphase
+	private int initTime = 240000;
+
+	// 1 Minute Ausschwingphase
+	private int endTime = 60000;
+
+	// 5 Minuten Messphase
+	private int benchmarkTime = 300000;
+
+	// Counts the amount of transactions and is used to calculate TPSs
 	private int transactionCount;
+
 	private DBmgmt dbmgmt;
 	Connection conn;
 	private Random random = new Random();
@@ -21,26 +43,41 @@ public class LoadDriver extends Thread {
 	}
 
 	public void run() {
+		// Starts "Einschwingphase"
 		init();
+		
+		// Starts "Messphase"
 		benchmark();
+		
+		// Starts "Ausschwingphase"
 		end();
 
+		// Calculate and print TPS, cause thats what we want to know
 		TPS();
 
 		try {
+			// Close connection in order to safe some memory
 			conn.close();
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
+			// TODO Auto-generated catch block - YES auto-generated - why not?
 			e.printStackTrace();
 		}
+		// Even without print we should see when it's done but to print it makes it much cooler
 		System.out.println("LoadDriver done!");
 	}
 
+	/**
+	 * "Einschwingphase" Does transactions for 4 minutes WITHOUT counting!
+	 */
 	private void init() {
+		// Remember when we started
 		long startTime = System.currentTimeMillis();
+		// And loop till we reach the defined time
 		while ((System.currentTimeMillis() - startTime) < initTime) {
 			try {
+				// Do some cool transaction stuff
 				Transaction();
+				// And sleep for the defined thinkTime
 				Thread.sleep(thinkTime);
 			} catch (InterruptedException | SQLException e) {
 				e.printStackTrace();
@@ -48,6 +85,9 @@ public class LoadDriver extends Thread {
 		}
 	}
 
+	/**
+	 * "Messphase" Does transactions for 5 minutes WITH counting
+	 */
 	private void benchmark() {
 		long startTime = System.currentTimeMillis();
 		while ((System.currentTimeMillis() - startTime) < benchmarkTime) {
@@ -63,6 +103,9 @@ public class LoadDriver extends Thread {
 		}
 	}
 
+	/**
+	 * "Ausschwingphase" Does transactions for 1 minute WITHOUT counting!
+	 */
 	private void end() {
 		long startTime = System.currentTimeMillis();
 		while ((System.currentTimeMillis() - startTime) < endTime) {
@@ -75,26 +118,45 @@ public class LoadDriver extends Thread {
 		}
 	}
 
+	/**
+	 * Either does "getBalance(accid)", "Deposit(...)" or "Analyse(delta)"
+	 * depending on a chance of 35/50/15 From "DBI: Aufgabenblatt 5": "Die
+	 * relative Gewichtung für die zufällige Auswahl der TXs sei dabei (35 zu 50
+	 * zu 15) für Kontostands-, Einzahlungs- und Analyse-TXs."
+	 * 
+	 * @throws SQLException
+	 */
 	@SuppressWarnings("static-access")
 	private void Transaction() throws SQLException {
+		// Get us a random number between 0 and 100
 		int chance = random.nextInt(100);
+		// So it is decided what to do based on the Chance 35/50/15
 		if (chance < 35) {
+			// Get the balance of a random accid
 			int accid = random.nextInt(100 * 100000) + 1;
 			dbmgmt.getBalance(accid);
 		} else if (chance >= 35 && chance < 85) {
+			// Deposit random parameters on random accid
+			// "+ 1" because we dont want it to be 0
 			int accid = random.nextInt(100 * 100000) + 1;
 			int tellerid = random.nextInt(100 * 10) + 1;
 			int branchid = random.nextInt(100 * 1) + 1;
 			int delta = random.nextInt(10000) + 1;
 			dbmgmt.Deposit(accid, tellerid, branchid, delta);
 		} else {
+			// Analyse with random delta
 			int delta = random.nextInt(10000) + 1;
 			dbmgmt.Analyse(delta);
 		}
 	}
 
+	/**
+	 * Calculates and prints TPS based on transactionCount
+	 */
 	private void TPS() {
+		// Calculates
 		float tps = (float) transactionCount / (float) (benchmarkTime / 1000);
+		// And prints
 		System.out.println("TPS: " + tps);
 	}
 }

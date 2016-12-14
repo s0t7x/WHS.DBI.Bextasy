@@ -36,12 +36,12 @@ public class DBmgmt extends Thread {
 	}
 
 	/**
-	 * Connects to the Database defined in this object
-	 * It's not Public because it is only used by the class itself in the constructor
+	 * Connects to the Database defined in this object It's not Public because
+	 * it is only used by the class itself in the constructor
 	 */
 	void Connect() {
 		// Try to establish a connection
-		System.out.println("Connect to " + ServerAddress + "with given credentials for " + UserName + "...");
+		System.out.println("Connect to " + ServerAddress + " with given credentials for " + UserName + "...");
 		try {
 			conn = DriverManager.getConnection(
 					"jdbc:mysql://" + ServerAddress + "/" + DatabaseName + "?allowMultiQueries=true", UserName,
@@ -53,8 +53,10 @@ public class DBmgmt extends Thread {
 	}
 
 	/**
-	 * From "DBI: Aufgabenblatt 5":
-	 * "Die Methode erwartet als Eingabeparameter den Wert einer Kontonummer ACCID und gibt den zugehörigen Kontostand BALANCE als Ausgabewert zurück."
+	 * From "DBI: Aufgabenblatt 5": "Die Methode erwartet als Eingabeparameter
+	 * den Wert einer Kontonummer ACCID und gibt den zugehörigen Kontostand
+	 * BALANCE als Ausgabewert zurück."
+	 * 
 	 * @param accid
 	 * @return Balance of ACCID
 	 * @throws SQLException
@@ -70,45 +72,48 @@ public class DBmgmt extends Thread {
 	}
 
 	/**
-	 * From "DBI: Aufgabenblatt 5":
-	 * "Die Methode erwartet als Eingabeparameter jeweils Werte für
-	 * - eine Kontonummer ACCID,
-	 * - eine Geldautomatennummer TELLERID,
-	 * - eine Zweigstellennummer BRANCHID
-	 * - und einen Einzahlungsbetrag DELTA.
-	 * Damit sollen innerhalb dieser Transaktion die folgenden Einzelaktionen durchgeführt werden:
-	 * - In der Relation BRANCHES soll die zu BRANCHID gehörige Bilanzsumme BALANCE aktualisiert werden. 
-	 * - In der Relation TELLERS soll die zu TELLERID gehörige Bilanzsumme BALANCE aktualisiert werden.
-	 * - In der Relation ACCOUNTS soll der zu ACCID gehörige Kontostand BALANCE aktualisiert werden, und
-	 * - in der Relation HISTORY soll die Einzahlung (incl. des aktualisierten Kontostandes ACCOUNTS.BALANCE) protokolliert werden.
-	 * Der ermittelte neue Kontostand soll als Ausgabewert der Methode zurückgegeben werden."
+	 * From "DBI: Aufgabenblatt 5": "Die Methode erwartet als Eingabeparameter
+	 * jeweils Werte für - eine Kontonummer ACCID, - eine Geldautomatennummer
+	 * TELLERID, - eine Zweigstellennummer BRANCHID - und einen
+	 * Einzahlungsbetrag DELTA. Damit sollen innerhalb dieser Transaktion die
+	 * folgenden Einzelaktionen durchgeführt werden: - In der Relation BRANCHES
+	 * soll die zu BRANCHID gehörige Bilanzsumme BALANCE aktualisiert werden. -
+	 * In der Relation TELLERS soll die zu TELLERID gehörige Bilanzsumme BALANCE
+	 * aktualisiert werden. - In der Relation ACCOUNTS soll der zu ACCID
+	 * gehörige Kontostand BALANCE aktualisiert werden, und - in der Relation
+	 * HISTORY soll die Einzahlung (incl. des aktualisierten Kontostandes
+	 * ACCOUNTS.BALANCE) protokolliert werden. Der ermittelte neue Kontostand
+	 * soll als Ausgabewert der Methode zurückgegeben werden."
+	 * 
 	 * @param accid
 	 * @param tellerid
 	 * @param branchid
 	 * @param delta
+	 * @return New Balance for ACCID
 	 * @throws SQLException
 	 */
-	public static void Deposit(int accid, int tellerid, int branchid, int delta) throws SQLException {
-		int newBalance = 0;
+	public static int Deposit(int accid, int tellerid, int branchid, int delta) throws SQLException {
+		int newBalance = getBalance(accid) + delta;
 		Statement stmt = conn.createStatement();
 
 		String string30 = "123456789012345678901234567890";
 
+		stmt.executeQuery("SET FOREIGN_KEY_CHECKS=0");
 		stmt.executeUpdate("UPDATE branches SET balance=balance+" + delta + " WHERE branchid=" + branchid);
 		stmt.executeUpdate("UPDATE tellers SET balance=balance+" + delta + " WHERE tellerid=" + tellerid);
 		stmt.executeUpdate("UPDATE accounts SET balance=balance+" + delta + " WHERE accid=" + accid);
-		stmt.executeUpdate("INSERT INTO history(accid, tellerid, delta,                 branchid, accbalance, cmmnt)"
-				+ "VALUES(" + accid + "," + tellerid + "," + delta + "," + branchid + "," + newBalance + ",'" + string30
-				+ "')");
+		stmt.executeUpdate("INSERT INTO history(accid, tellerid, delta, branchid, accbalance, cmmnt)" + "VALUES("
+				+ accid + "," + tellerid + "," + delta + "," + branchid + "," + newBalance + ",'" + string30 + "')");
+		stmt.executeQuery("SET FOREIGN_KEY_CHECKS=1");
 		stmt.close();
-		getBalance(accid);
+		return getBalance(accid);
 	}
 
 	/**
-	 * From "DBI: Aufgabenblatt 5":
-	 * "Die Methode erwartet als Eingabeparameter den Wert eines Einzahlungsbetrages DELTA 
-	 * und gibt die Anzahl bisher protokollierter Einzahlungen mit genau diesem Betrag als 
-	 * Ausgabewert zurück."
+	 * From "DBI: Aufgabenblatt 5": "Die Methode erwartet als Eingabeparameter
+	 * den Wert eines Einzahlungsbetrages DELTA und gibt die Anzahl bisher
+	 * protokollierter Einzahlungen mit genau diesem Betrag als Ausgabewert
+	 * zurück."
 	 * 
 	 * @param delta
 	 * @return Amount of Deposits with given Value delta
