@@ -20,17 +20,17 @@ public class Main {
 
 		_Menu_Home();
 	}
+
 	/**
-	 * Prints a simple console based Menu and lets the user choose between several options.
-	 * This is the Home Menu. From here the user starts and can get into other menus.
+	 * Prints a simple console based Menu and lets the user choose between
+	 * several options. This is the Home Menu. From here the user starts and can
+	 * get into other menus.
 	 * 
-	 * Menu:
-	 * 	1. Goes to "Manage Connection" Menu
-	 * 	2. Goes to "Database Functions" Menu
-	 * 	3. Starts the Benchmarking
-	 * 	4. Exits application
+	 * Menu: 1. Goes to "Manage Connection" Menu 2. Goes to "Database Functions"
+	 * Menu 3. Starts the Benchmarking 4. Exits application
 	 * 
-	 * Points 2/3 are disabled til the user connected with a database in the "Manage connection" menu.
+	 * Points 2/3 are disabled til the user connected with a database in the
+	 * "Manage connection" menu.
 	 * 
 	 * @throws SQLException
 	 */
@@ -74,10 +74,9 @@ public class Main {
 	/**
 	 * Menu to manage Connections and to interact with DBmgmt.
 	 * 
-	 * Menu:
-	 * 	1. Connects / Reconnect to given address, database with given credentials
-	 * 	2. Connects to localhost database "benchmark" with root and no password
-	 * 	3. Goes back to "Home Menu"
+	 * Menu: 1. Connects / Reconnect to given address, database with given
+	 * credentials 2. Connects to localhost database "benchmark" with root and
+	 * no password 3. Goes back to "Home Menu"
 	 */
 	static void _Menu_ManageConnection() {
 		// DB_conn_main = new DBmgmt("localhost","benchmark", "root", "");
@@ -116,12 +115,14 @@ public class Main {
 	/**
 	 * Menu to do different DBmgmt methods
 	 * 
-	 * Menu:
-	 * 	1. Get the Balance of a given ACCID
-	 * 	2. Deposit a specified amount to an ACCID
-	 * 	3. Search for an deposit amount in the History
+	 * Menu: 1. Get the Balance of a given ACCID 2. Deposit a specified amount
+	 * to an ACCID 3. Search for an deposit amount in the History
+	 * 
+	 * Supress "static-acces" warnings, because they are annoying in eclipse...
+	 * 
 	 * @throws SQLException
 	 */
+	@SuppressWarnings("static-access")
 	static void _Menu_DatabaseFunctions() throws SQLException {
 		int selection = 0;
 
@@ -159,10 +160,19 @@ public class Main {
 	}
 
 	/**
-	 * Starts the benchmark on connected Database
+	 * Starts LoadDriver threads on connected Database
+	 * 
 	 * @throws SQLException
 	 */
 	static void _Menu_BenchmarkDatabase() throws SQLException {
-
+		System.out.print("Amount of LoadDrivers to execute: ");
+		int drivers = ReadConsole.nextInt();
+		Thread threads[] = new Thread[drivers];
+		LoadDriver loadDrivers[] = new LoadDriver[drivers];
+		for (int i = 0; i < drivers; i++) {
+			loadDrivers[i] = new LoadDriver(DB_conn_main);
+			threads[i] = new Thread(loadDrivers[i]);
+			threads[i].start();
+		}
 	}
 }
