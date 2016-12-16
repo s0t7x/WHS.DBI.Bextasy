@@ -103,22 +103,19 @@ public class DBmgmt extends Thread {
 		PreparedStatement stmt = conn.prepareStatement("");
 		stmt.executeQuery("SET FOREIGN_KEY_CHECKS=0");
 		
-		stmt = conn.prepareStatement("UPDATE branches SET balance=balance+? WHERE ? = ?");
+		stmt = conn.prepareStatement("UPDATE branches SET balance=balance+? WHERE branchid = ?");
 		stmt.setInt(1, delta);
-		stmt.setString(2, "branchid");
-		stmt.setInt(3, branchid);
+		stmt.setInt(2, branchid);
 		stmt.execute();
 		
-		stmt = conn.prepareStatement("UPDATE tellers SET balance=balance+? WHERE ? = ?");
+		stmt = conn.prepareStatement("UPDATE tellers SET balance=balance+? WHERE tellerid = ?");
 		stmt.setInt(1, delta);
-		stmt.setString(2, "tellerid");
-		stmt.setInt(3, tellerid);
+		stmt.setInt(2, tellerid);
 		stmt.execute();
 		
-		stmt = conn.prepareStatement("UPDATE accounts SET balance=balance+? WHERE ? = ?");
+		stmt = conn.prepareStatement("UPDATE accounts SET balance=balance+? WHERE accid = ?");
 		stmt.setInt(1, delta);
-		stmt.setString(2, "accid");
-		stmt.setInt(3, accid);
+		stmt.setInt(2, accid);
 		stmt.execute();
 		
 		stmt.executeUpdate("INSERT INTO history(accid, tellerid, delta, branchid, accbalance, cmmnt)" + "VALUES("
