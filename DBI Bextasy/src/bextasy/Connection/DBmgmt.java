@@ -13,8 +13,8 @@ public class DBmgmt extends Thread {
 	public String ServerAddress;
 	public String DatabaseName;
 	public String UserName;
-	static String Password;
-	static Connection conn = null;
+	public String Password;
+	public static Connection conn = null;
 	// -------------------------------------
 
 	/**
@@ -44,9 +44,10 @@ public class DBmgmt extends Thread {
 		System.out.println("Connect to " + ServerAddress + " with given credentials for " + UserName + "...");
 		try {
 			conn = DriverManager.getConnection(
-					"jdbc:mysql://" + ServerAddress + "/" + DatabaseName + "?allowMultiQueries=true", UserName,
+					"jdbc:mysql://" + ServerAddress + "/" + DatabaseName + "?allowMultiQueries=true&useLocalSessionState=true", UserName,
 					Password);
 			conn.setAutoCommit(false);
+			conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
 			System.out.println("Connection established!");
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -96,18 +97,51 @@ public class DBmgmt extends Thread {
 	 */
 	public static int Deposit(int accid, int tellerid, int branchid, int delta) throws SQLException {
 		int newBalance = getBalance(accid) + delta;
-		Statement stmt = conn.createStatement();
 
 		String string30 = "123456789012345678901234567890";
 
+		PreparedStatement stmt = conn.prepareStatement("");
 		stmt.executeQuery("SET FOREIGN_KEY_CHECKS=0");
-		stmt.executeUpdate("UPDATE branches SET balance=balance+" + delta + " WHERE branchid=" + branchid);
-		stmt.executeUpdate("UPDATE tellers SET balance=balance+" + delta + " WHERE tellerid=" + tellerid);
-		stmt.executeUpdate("UPDATE accounts SET balance=balance+" + delta + " WHERE accid=" + accid);
+		
+		stmt = conn.prepareStatement("UPDATE branches SET balance=balance+? WHERE ? = ?");
+		stmt.setInt(1, delta);
+		stmt.setString(2, "branchid");
+		stmt.setInt(3, branchid);
+		stmt.execute();
+		
+		stmt = conn.prepareStatement("UPDATE tellers SET balance=balance+? WHERE ? = ?");
+		stmt.setInt(1, delta);
+		stmt.setString(2, "tellerid");
+		stmt.setInt(3, tellerid);
+		stmt.execute();
+		
+		stmt = conn.prepareStatement("UPDATE accounts SET balance=balance+? WHERE ? = ?");
+		stmt.setInt(1, delta);
+		stmt.setString(2, "accid");
+		stmt.setInt(3, accid);
+		stmt.execute();
+		
 		stmt.executeUpdate("INSERT INTO history(accid, tellerid, delta, branchid, accbalance, cmmnt)" + "VALUES("
 				+ accid + "," + tellerid + "," + delta + "," + branchid + "," + newBalance + ",'" + string30 + "')");
-		stmt.executeQuery("SET FOREIGN_KEY_CHECKS=1");
-		conn.commit();
+		
+		// conn.commit();
+//		stmt.executeUpdate("UPDATE branches SET balance=balance+" + delta + " WHERE branchid=" + branchid);
+//		stmt.executeUpdate("UPDATE tellers SET balance=balance+" + delta + " WHERE tellerid=" + tellerid);
+//		stmt.executeUpdate("UPDATE accounts SET balance=balance+" + delta + " WHERE accid=" + accid);
+//		stmt.executeUpdate("INSERT INTO history(accid, tellerid, delta, branchid, accbalance, cmmnt)" + "VALUES("
+//				+ accid + "," + tellerid + "," + delta + "," + branchid + "," + newBalance + ",'" + string30 + "')");
+//		// conn.commit();
+		// stmt.executeQuery("SET FOREIGN_KEY_CHECKS=1");
+		try {
+			conn.commit();
+		} catch (SQLException e) {
+			try {
+				e.printStackTrace();
+				conn.rollback();
+			} catch (SQLException e2) {
+				conn.rollback();
+			}
+		}
 		stmt.close();
 		return getBalance(accid);
 	}
@@ -129,7 +163,6 @@ public class DBmgmt extends Thread {
 		if (rs.next())
 			count = rs.getInt("count");
 		conn.commit();
-		conn.close();
 		return count;
 	}
 

@@ -21,13 +21,13 @@ public class LoadDriver extends Thread {
 	private int thinkTime = 50;
 
 	// 4 Minuten Einschwingphase
-	private int initTime = 240000;
+	private int initTime = 240000;//240000;
 
 	// 1 Minute Ausschwingphase
-	private int endTime = 60000;
+	private int endTime = 60000;//60000;
 
 	// 5 Minuten Messphase
-	private int benchmarkTime = 300000;
+	private int benchmarkTime = 300000;//300000;
 
 	// Counts the amount of transactions and is used to calculate TPSs
 	private int transactionCount;
@@ -43,10 +43,8 @@ public class LoadDriver extends Thread {
 	}
 
 	public void run() {
-		// Starts "Einschwingphase"
 		init();
 		
-		// Starts "Messphase"
 		benchmark();
 		
 		// Starts "Ausschwingphase"
@@ -55,13 +53,6 @@ public class LoadDriver extends Thread {
 		// Calculate and print TPS, cause thats what we want to know
 		TPS();
 
-		try {
-			// Close connection in order to safe some memory
-			conn.close();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block - YES auto-generated - why not?
-			e.printStackTrace();
-		}
 		// Even without print we should see when it's done but to print it makes it much cooler
 		System.out.println("LoadDriver done!");
 	}
@@ -81,6 +72,7 @@ public class LoadDriver extends Thread {
 				Thread.sleep(thinkTime);
 			} catch (InterruptedException | SQLException e) {
 				e.printStackTrace();
+				break;
 			}
 		}
 	}
@@ -148,6 +140,7 @@ public class LoadDriver extends Thread {
 			int delta = random.nextInt(10000) + 1;
 			dbmgmt.Analyse(delta);
 		}
+		
 	}
 
 	/**
@@ -158,6 +151,6 @@ public class LoadDriver extends Thread {
 		float tps = (float) transactionCount / (float) (benchmarkTime / 1000);
 		// And prints
 		System.out.println("TPS: " + tps);
-		System.out.println("TXs: w" + transactionCount);
+		System.out.println("TXs: " + transactionCount);
 	}
 }

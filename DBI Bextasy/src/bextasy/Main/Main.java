@@ -1,6 +1,7 @@
 package bextasy.Main;
 
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Scanner;
 
 import bextasy.Connection.*;
@@ -109,7 +110,9 @@ public class Main {
 				selection = 3;
 				break;
 			case 2:
-				DB_conn_main = new DBmgmt("localhost", "benchmark", "root", "");
+				// DB_conn_main = new DBmgmt("localhost", "benchmark", "root",
+				// "");
+				DB_conn_main = new DBmgmt("192.168.122.55", "benchmark", "dbi", "dbi_pass");
 				System.out.println("");
 				selection = 3;
 				break;
@@ -130,7 +133,8 @@ public class Main {
 	 * amount to an ACCID - 3. Search for an deposit amount in the History - 4.
 	 * Goes back to Home Menu
 	 * 
-	 * Suppress "static-access" warnings, because they are annoying in eclipse...
+	 * Suppress "static-access" warnings, because they are annoying in
+	 * eclipse...
 	 * 
 	 * @throws SQLException
 	 * @throws InterruptedException
@@ -156,7 +160,8 @@ public class Main {
 				System.out.println("");
 				break;
 			case 2:
-				// System.out.print("Could do manual deposit here, but its not coded yet\n");
+				// System.out.print("Could do manual deposit here, but its not
+				// coded yet\n");
 				// Above comment is a LIE!!!
 				System.out.print("Enter ACCID: ");
 				int temp_accid = ReadConsole.nextInt();
@@ -188,9 +193,14 @@ public class Main {
 	 * @throws SQLException
 	 * @throws InterruptedException
 	 */
+	@SuppressWarnings("static-access")
 	static void _Menu_BenchmarkDatabase() throws SQLException, InterruptedException {
 		System.out.print("Amount of LoadDrivers to execute: ");
 		int drivers = ReadConsole.nextInt();
+		
+		Statement st1 = DB_conn_main.conn.createStatement();
+		st1.execute("DELETE FROM history");
+		
 		Thread threads[] = new Thread[drivers];
 		LoadDriver loadDrivers[] = new LoadDriver[drivers];
 		for (int i = 0; i < drivers; i++) {
@@ -203,5 +213,6 @@ public class Main {
 		for (int i = 0; i < drivers; i++) {
 			threads[i].join();
 		}
+		DB_conn_main.conn.close();
 	}
 }
