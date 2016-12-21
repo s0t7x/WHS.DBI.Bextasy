@@ -6,12 +6,12 @@ import java.util.Random;
 
 /**
  * From "DBI: Aufgabenblatt 5": "[...] in einem Load-Driver-Programm, das 10
- * Minuten lang in einer Schleife jeweils zufällig gewählt eine der obigen TXs
- * mit zufällig gewählten, sinnvollen Parametern1 durchführt und dabei die
+ * Minuten lang in einer Schleife jeweils zufï¿½llig gewï¿½hlt eine der obigen TXs
+ * mit zufï¿½llig gewï¿½hlten, sinnvollen Parametern1 durchfï¿½hrt und dabei die
  * bekannten ACID-Eigenschaften garantiert. Zwischen zwei einzelnen TXs soll
- * jeweils eine feste „Nachdenkzeit“ (engl. Think Time) von genau 50 msec
+ * jeweils eine feste ï¿½Nachdenkzeitï¿½ (engl. Think Time) von genau 50 msec
  * liegen, in der das Benchmark-Programm nach der erfolgreichen Abarbeitung
- * einer TX einfach wartet, bevor es die nächste Lasttransaktion startet. [...]"
+ * einer TX einfach wartet, bevor es die nï¿½chste Lasttransaktion startet. [...]"
  * 
  * @author s0T7x
  *
@@ -51,7 +51,7 @@ public class LoadDriver extends Thread {
 		end();
 
 		// Calculate and print TPS, cause thats what we want to know
-		TPS();
+		tps();
 
 		// Even without print we should see when it's done but to print it makes it much cooler
 		System.out.println("LoadDriver done!");
@@ -67,7 +67,7 @@ public class LoadDriver extends Thread {
 		while ((System.currentTimeMillis() - startTime) < initTime) {
 			try {
 				// Do some cool transaction stuff
-				Transaction();
+				transaction();
 				// And sleep for the defined thinkTime
 				Thread.sleep(thinkTime);
 			} catch (InterruptedException | SQLException e) {
@@ -84,7 +84,7 @@ public class LoadDriver extends Thread {
 		long startTime = System.currentTimeMillis();
 		while ((System.currentTimeMillis() - startTime) < benchmarkTime) {
 			try {
-				Transaction();
+				transaction();
 				Thread.sleep(thinkTime);
 			} catch (InterruptedException | SQLException e) {
 				// TODO Auto-generated catch block
@@ -102,7 +102,7 @@ public class LoadDriver extends Thread {
 		long startTime = System.currentTimeMillis();
 		while ((System.currentTimeMillis() - startTime) < endTime) {
 			try {
-				Transaction();
+				transaction();
 				Thread.sleep(thinkTime);
 			} catch (InterruptedException | SQLException e) {
 				e.printStackTrace();
@@ -113,13 +113,13 @@ public class LoadDriver extends Thread {
 	/**
 	 * Either does "getBalance(accid)", "Deposit(...)" or "Analyse(delta)"
 	 * depending on a chance of 35/50/15 From "DBI: Aufgabenblatt 5": "Die
-	 * relative Gewichtung für die zufällige Auswahl der TXs sei dabei (35 zu 50
-	 * zu 15) für Kontostands-, Einzahlungs- und Analyse-TXs."
+	 * relative Gewichtung fï¿½r die zufï¿½llige Auswahl der TXs sei dabei (35 zu 50
+	 * zu 15) fï¿½r Kontostands-, Einzahlungs- und Analyse-TXs."
 	 * 
 	 * @throws SQLException
 	 */
 	@SuppressWarnings("static-access")
-	private void Transaction() throws SQLException {
+	private void transaction() throws SQLException {
 		// Get us a random number between 0 and 100
 		int chance = random.nextInt(100);
 		// So it is decided what to do based on the Chance 35/50/15
@@ -134,11 +134,11 @@ public class LoadDriver extends Thread {
 			int tellerid = random.nextInt(100 * 10) + 1;
 			int branchid = random.nextInt(100 * 1) + 1;
 			int delta = random.nextInt(10000) + 1;
-			dbmgmt.Deposit(accid, tellerid, branchid, delta);
+			dbmgmt.deposit(accid, tellerid, branchid, delta);
 		} else {
 			// Analyse with random delta
 			int delta = random.nextInt(10000) + 1;
-			dbmgmt.Analyse(delta);
+			dbmgmt.analyse(delta);
 		}
 		
 	}
@@ -146,7 +146,7 @@ public class LoadDriver extends Thread {
 	/**
 	 * Calculates and prints TPS based on transactionCount
 	 */
-	private void TPS() {
+	private void tps() {
 		// Calculates
 		float tps = (float) transactionCount / (float) (benchmarkTime / 1000);
 		// And prints

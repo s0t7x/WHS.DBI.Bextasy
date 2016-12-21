@@ -33,14 +33,14 @@ public class DBmgmt extends Thread {
 		UserName = _UserName;
 		Password = _Password;
 		System.out.println("Ready to connect to " + _ServerAddress);
-		Connect();
+		connect();
 	}
 
 	/**
 	 * Connects to the Database defined in this object It's not Public because
 	 * it is only used by the class itself in the constructor
 	 */
-	void Connect() {
+	void connect() {
 		// Try to establish a connection
 		System.out.println("Connect to " + ServerAddress + " with given credentials for " + UserName + "...");
 		try {
@@ -57,8 +57,8 @@ public class DBmgmt extends Thread {
 
 	/**
 	 * From "DBI: Aufgabenblatt 5": "Die Methode erwartet als Eingabeparameter
-	 * den Wert einer Kontonummer ACCID und gibt den zugehörigen Kontostand
-	 * BALANCE als Ausgabewert zurück."
+	 * den Wert einer Kontonummer ACCID und gibt den zugehï¿½rigen Kontostand
+	 * BALANCE als Ausgabewert zurï¿½ck."
 	 * 
 	 * @param accid
 	 * @return Balance of ACCID
@@ -77,17 +77,17 @@ public class DBmgmt extends Thread {
 
 	/**
 	 * From "DBI: Aufgabenblatt 5": "Die Methode erwartet als Eingabeparameter
-	 * jeweils Werte für - eine Kontonummer ACCID, - eine Geldautomatennummer
+	 * jeweils Werte fï¿½r - eine Kontonummer ACCID, - eine Geldautomatennummer
 	 * TELLERID, - eine Zweigstellennummer BRANCHID - und einen
 	 * Einzahlungsbetrag DELTA. Damit sollen innerhalb dieser Transaktion die
-	 * folgenden Einzelaktionen durchgeführt werden: - In der Relation BRANCHES
-	 * soll die zu BRANCHID gehörige Bilanzsumme BALANCE aktualisiert werden. -
-	 * In der Relation TELLERS soll die zu TELLERID gehörige Bilanzsumme BALANCE
+	 * folgenden Einzelaktionen durchgefï¿½hrt werden: - In der Relation BRANCHES
+	 * soll die zu BRANCHID gehï¿½rige Bilanzsumme BALANCE aktualisiert werden. -
+	 * In der Relation TELLERS soll die zu TELLERID gehï¿½rige Bilanzsumme BALANCE
 	 * aktualisiert werden. - In der Relation ACCOUNTS soll der zu ACCID
-	 * gehörige Kontostand BALANCE aktualisiert werden, und - in der Relation
+	 * gehï¿½rige Kontostand BALANCE aktualisiert werden, und - in der Relation
 	 * HISTORY soll die Einzahlung (incl. des aktualisierten Kontostandes
 	 * ACCOUNTS.BALANCE) protokolliert werden. Der ermittelte neue Kontostand
-	 * soll als Ausgabewert der Methode zurückgegeben werden."
+	 * soll als Ausgabewert der Methode zurï¿½ckgegeben werden."
 	 * 
 	 * @param accid
 	 * @param tellerid
@@ -96,7 +96,7 @@ public class DBmgmt extends Thread {
 	 * @return New Balance for ACCID
 	 * @throws SQLException
 	 */
-	public static int Deposit(int accid, int tellerid, int branchid, int delta) throws SQLException {
+	public static int deposit(int accid, int tellerid, int branchid, int delta) throws SQLException {
 		int newBalance = getBalance(accid) + delta;
 
 		String string30 = "123456789012345678901234567890";
@@ -104,9 +104,9 @@ public class DBmgmt extends Thread {
 		PreparedStatement stmt = conn.prepareStatement("");
 		stmt.executeQuery("SET FOREIGN_KEY_CHECKS=0");
 		
-		stmt = conn.prepareStatement("UPDATE branches SET balance=balance+? WHERE branchid = ?");
+		stmt = conn.prepareStatement("UPDATE accounts SET balance=balance+? WHERE accid = ?");
 		stmt.setInt(1, delta);
-		stmt.setInt(2, branchid);
+		stmt.setInt(2, accid);
 		stmt.execute();
 		
 		stmt = conn.prepareStatement("UPDATE tellers SET balance=balance+? WHERE tellerid = ?");
@@ -114,9 +114,9 @@ public class DBmgmt extends Thread {
 		stmt.setInt(2, tellerid);
 		stmt.execute();
 		
-		stmt = conn.prepareStatement("UPDATE accounts SET balance=balance+? WHERE accid = ?");
+		stmt = conn.prepareStatement("UPDATE branches SET balance=balance+? WHERE branchid = ?");
 		stmt.setInt(1, delta);
-		stmt.setInt(2, accid);
+		stmt.setInt(2, branchid);
 		stmt.execute();
 		
 		stmt.executeUpdate("INSERT INTO history(accid, tellerid, delta, branchid, accbalance, cmmnt)" + "VALUES("
@@ -141,13 +141,13 @@ public class DBmgmt extends Thread {
 	 * From "DBI: Aufgabenblatt 5": "Die Methode erwartet als Eingabeparameter
 	 * den Wert eines Einzahlungsbetrages DELTA und gibt die Anzahl bisher
 	 * protokollierter Einzahlungen mit genau diesem Betrag als Ausgabewert
-	 * zurück."
+	 * zurï¿½ck."
 	 * 
 	 * @param delta
 	 * @return Amount of Deposits with given Value delta
 	 * @throws SQLException
 	 */
-	public static int Analyse(int delta) throws SQLException {
+	public static int analyse(int delta) throws SQLException {
 		int count = 0;
 		Statement stmt = conn.createStatement();
 		ResultSet rs = stmt.executeQuery("SELECT COUNT(*) AS count FROM history WHERE delta=" + delta);
