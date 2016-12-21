@@ -1,0 +1,377 @@
+\documentclass[a4paper, bibliography=totoc, 12pt]{scrartcl}
+
+%\documentclass[ngerman]{scrartcl}
+\usepackage{hyperref}
+
+\usepackage[T1]{fontenc}
+\usepackage[latin1]{inputenc}
+\usepackage[ngerman]{babel}
+\usepackage[table]{xcolor}
+\usepackage{url}
+\usepackage{setspace}
+\setstretch{1.5}
+\usepackage{paralist}
+\usepackage{listings}
+\usepackage{soul}
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage{color}%für die Farben bei lstlisting
+\usepackage{courier}%Für die Code-Stellen
+\usepackage{fancyhdr}%für die Kopfzeile
+\pagestyle{fancy}
+\rhead{Thomas Manderla\linebreak Miguel Oppermann} \chead{} \lhead{}
+\lstset{basicstyle=\scriptsize\ttfamily,
+breaklines=true,
+ showstringspaces=false,
+language = Java 
+ }%Setzt die Schriftart und -größe der Codebeispiele
+
+
+
+\newcommand{\zita}{\begin{quote}\begin{tabular}{lp{11cm}}}
+\newcommand{\zitb}{\end{tabular}\end{quote}}
+\newcommand{\fn}{\hspace{0.05cm}}
+\widowpenalty = 10000%Das böse Latex für Hurenkinder bestrafen
+\clubpenalty = 10000%Das böse Latex für Schusterjungen bestrafen
+\displaywidowpenalty = 10000
+
+%Dateiname: Name_Entwurf
+\begin{document}
+
+\thispagestyle{empty}
+	\begin{titlepage}
+		\begin{center}
+		
+		Westfälische Hochschule Bocholt
+		
+		Fachbereich 5
+				
+		Wintersemester 2016/2017
+		
+		\vspace*{1cm}
+		
+		%\includegraphics[width=.2\textwidth]{fsu-logo.pdf}
+		
+		\vspace*{1.2cm}
+		
+		\LARGE \textbf{Dokumentation zur Praktikumsaufgabe 9:}
+		\LARGE \textbf{Messen von Lasttransaktionen}
+		
+		\vspace*{0,1cm}
+		
+		\large im Praktikum \glqq DBI\grqq
+		\vspace*{0,1cm}
+		
+		\large bei Prof. Dr. Bernhard Convent
+		
+		\large und Dipl.-Ing. Hans-Peter Huster
+		
+		\vspace*{0.7cm}
+		
+		\end{center}
+	
+	\vspace*{4cm} \normalsize
+		\begin{tabular}{ll}
+		
+		vorgelegt von: &Thomas Manderla\\
+		und&Miguel Oppermann\\
+		Praktikumsgruppe: &4.1\\
+		Studienfach: &Informatik.Softwaresysteme\\
+		Fachsemester: &3\\
+		E-Mailadressen: &thomas.manderla@studmail.w-hs.de\\
+		&miguel.oppermann@studmail.w-hs.de\\
+		
+		\end{tabular}
+		
+	\vspace*{1cm}
+	Bocholt, den 22. Dezember 2016	
+	
+	\end{titlepage}
+	\thispagestyle{empty}
+	
+	\setcounter{tocdepth}{3}%Gibt die Tiefe der Ebenen an, die noch im Inhaltsverzeichnis auftauchen
+\tableofcontents \thispagestyle{empty}
+
+\newpage
+\setcounter{page}{1}
+\section{Einleitung}
+%Aufgabenstellung
+\subsection{Aufgabenstellung}%%DONE
+Aufgabe war es, die in Praktikumsaufgabe 7 erstellte 100-tps-Benchmark-Datenbank mit drei Methoden, die Transaktionen auf ihr durchführen, zu belasten und die erreichte Zahl an Transaktionen zu messen. Dabei galt es, mehrere Details zu beachten.
+
+\noindent
+Die drei Lasttransaktionen sollten innerhalb einer bestehenden Verbindung durchgeführt werden. Sie sollten folgende Aufgaben erfüllen:
+\begin{enumerate}
+\itemsep0pt
+\item \textbf{Kontostand-Transaktion}
+%	\begin{itemize}
+%	\itemsep0pt
+%	\item 
+Erwartet Kontonummer ACCID und gibt Kontostand BALANCE zurück.
+%	\end{itemize}
+\item \textbf{Einzahlungs-Transaktion}
+Erwartet Eingabewerte für:
+	\begin{itemize}
+	\itemsep0pt
+	\item Kontonummer ACCID
+	\item Automatennummer TELLERID
+	\item Zweigstellennummer BRANCHID
+	\item Betrag DELTA
+	\end{itemize}
+\noindent	
+und soll folgende Aktionen durchführen:
+	\begin{itemize}
+	\item In der Relation BRANCHES soll die zur BRANCHID gehörige BALANCE aktualisiert werden
+	\item In der Relation TELLERS soll die zu TELLERID gehörige Bilanzsumme BALANCE
+aktualisiert werden.
+	\item In der Relation ACCOUNTS soll der zu ACCID gehörige Kontostand BALANCE
+aktualisiert werden.
+	\item In der Relation HISTORY soll die Einzahlung (incl. des aktualisierten Kontostandes
+ACCOUNTS.BALANCE) protokolliert werden.
+	\end{itemize}
+und schließlich den neuen Kontostand, BALANCE, zurückgeben.
+\item \textbf{Analyse-Transaktion}
+%	\begin{itemize}
+%	\itemsep0pt	
+%	\item 
+Erwartet Einzahlungsbetrag DELTA und gibt Anzahl der Transaktionen mit diesem Betrag zurück.
+%	\end{itemize}	
+\end{enumerate}
+
+\noindent
+Diese Transaktionen sollten zufällig gewählt, mit der Gewichtung 35/50/15, in einer 10-minütigen Schleife durchlaufen werden, wobei mehrere Eigenheiten zu beachten waren:
+\begin{itemize}
+\itemsep0pt
+\item Nach jeder Transaktion herrscht eine Zwangspause von 50 ms.
+\item Die Messphase beginnt erst nach 4 Minuten \glqq Einschwingphase\grqq .
+\item Nach der 5-minütigen Messphase gibt es eine 1-minütige \glqq Ausschwingphase\grqq . In der Messphase werden die Anzahl der Transaktionen und die durchschnittliche Zahl der Transaktionen pro Sekunde ermittelt. %Die Ausschwingphase erlaubt es uns, zeitversetzt zu starten.
+\item Bei alldem sollten die ACID-Eigenschaften\footnote{Die Verwendung in der Aufgabenstellung und das ausführliche Besprechen in der Vorlesung lassen uns davon Abstand nehmen, die ACID-Eigenschaften an dieser Stelle näher zu erläutern.} der Transaktionen gewährleistet sein.
+\end{itemize}
+
+\noindent
+Diese Messungen sollten unter drei verschiedenen Last-Bedingungen durchgeführt werden, mit je 5 Load Drivers auf einem, zwei und drei Client-Rechnern. 
+
+%Konfiguration unseres Systems
+\subsection{Konfiguration des verwendeten Systems}
+Wir nutzten MySQL 5.7.15. Der für den erste remote-Zugriff genutzte Client-Rechner besaß einen Intel Core-i5 mit 1,7 GHz und 8 GB RAM und verwendete Windows 10. Für weitere Tests wurden die Pool-Rechner der Fachhochschule als Client-Rechner verwendet. Wir programmierten in Java. Die IDE war Eclipse Neon.1 und als Datenbankschnittstelle wurde JDBC verwendet. Das DB-Benchmarking-Framework wurde von uns nicht verwendet. %Einarbeitung zeitaufwändig: was benchmarked er genau? %mehr Funktionalität als benötigt %Lernzwecke: selbst programmieren
+Statt dessen fand unser Programm \emph{Bextasy} Anwendung.
+%TODO: jdbc-Treiber inklusive Versionsnummer (sybase? V. 1.1.0.201603142002)
+
+\section{Aufbau des Programms}
+	\subsection{Überblick}
+		\emph{Brextasy} wurde allein für diese Praktikumsaufgabe geschrieben und versucht, auf jeglichen für die Lösung der Aufgabe nicht benötigten Overhead zu verzichten. Es weist eine kleine Menüführung auf, die raschen Einstieg in die nötigen Programmabläufe bietet.
+		Brextasy besteht aus drei Klassen, die die zentralen Aufgaben übernehmen. Diese werden im Folgenden vorgestellt. Der vollständige Code in seiner finalen Version befindet sich im Anhang.
+	\subsection{Die Klasse \emph{Main}}
+
+	\subsection{Die Klasse \emph{DBmgmt}}
+
+		\subsubsection{Die Methode \emph{getBalance}}
+	
+		\subsubsection{Die Methode \emph{Deposit}}
+		
+		\subsubsection{Die Methode \emph{Analyse}}
+
+	\subsection{Die Klasse \emph{LoadDriver}}
+	
+	\begin{lstlisting}
+ private void Transaction() throws SQLException {
+ // Get us a random number between 0 and 100
+ int chance = random.nextInt(100);
+ // So it is decided what to do based on the Chance 35/50/15
+ if (chance < 35) {
+  // Get the balance of a random accid
+  int accid = random.nextInt(100 * 100000) + 1;
+  dbmgmt.getBalance(accid);
+  } else if (chance >= 35 && chance < 85) {
+  // Deposit random parameters on random accid
+  // "+ 1" because we dont want it to be 0
+  int accid = random.nextInt(100 * 100000) + 1;
+  int tellerid = random.nextInt(100 * 10) + 1;
+  int branchid = random.nextInt(100 * 1) + 1;
+  int delta = random.nextInt(10000) + 1;
+  dbmgmt.Deposit(accid, tellerid, branchid, delta);
+ } else {
+  // Analyse with random delta
+  int delta = random.nextInt(10000) + 1;
+  dbmgmt.Analyse(delta);
+  }		
+ }
+	\end{lstlisting}
+
+
+\section{Optimierungen am Programm und Schwierigkeiten auf dem Weg}
+	\subsection{Initialmessung}
+	Um von Optimierungen sprechen zu können, sollen an dieser Stelle kurz die Beschreibung der Besonderheiten unserer Eingangsmessung erfolgen. Wir begannen mit einem einzigen Load Driver, gestartet von einem Laptop mit oben gegebener Spezifizierung. Die Serialisierbarkeit der Transaktionen war noch nicht gewährleistet und es waren auch noch keine Rollbacks eingefügt. 
+	
+	\noindent
+	Bei diesem Testlauf kam es zu einem vorzeitigen Abbruch der Verbindung zwischen Client und Server, was wir erst bemerkten, als die Messung abgeschlossen war. Der erzielte Durchsatz war demnach nicht sehr hoch, jedoch gestaltete sich die Fehlersuche sehr interessant.\footnote{Wenngleich der Fehler selbst im höchsten Maße trivial war.} Wir führten mehrere Probeläufe durch, die, da sie zur Fehlerfindung dienten, nicht in der Messergebnistabelle im Anhang aufgeführt sind. Dabei stellten wir zwei Dinge fest:
+\begin{enumerate}
+\itemsep0pt
+\item Der Abbruch der Verbindung zum Server erfolgte \emph{jedesmal}.
+\item Er fand zu unzusammenhängenden und unvorhersagbaren Zeitpunkten statt.
+\end{enumerate}	
+	 Die ersten Debugging-Versuche verliefen dementsprechend ergebnislos -- das Programm lief wie geplant und die Verbindung blieb während des Durchschreitens der Einzelschritte bestehen. Erst als wir einen genaueren Blick auf die gerufenen Transaktionsmethoden warfen, entdeckten wir, dass beim Debuggen ausschließlich die Einzahlungs-TX-Methode aufgerufen worden war. Da sie die höchste Wahrscheinlichkeit zugewiesen bekommen hatte, war dies nicht verwunderlich. Bei ihr lag der Fehler möglicherweise nicht verborgen.
+	 
+	 Wir schraubten zunächst an den Wahrscheinlichkeiten, gingen dann aber rasch dazu über, die einzelnen Transaktionen bewusst aufzurufen, indem wir ihre Wahrscheinlichkeiten jeweils auf 100\%\ setzten. So fanden wir schnell heraus, dass die Verbindung nur beim Aufrufen der dritten Transaktions-Methode, \emph{Analyse-TX}, abbrach. Die Ursache war nun einfach zu entdecken: wir hatten die Verbindung mit 
+	 \begin{lstlisting}
+	 conn.close();
+	 \end{lstlisting}
+
+\noindent
+in der Analyse-TX-Methode selbst geschlossen.	
+	Nachdem wir dies behoben hatten, konnten wir uns endlich der Serialisierbarkeit zuwenden.
+	\subsection{Messung 2: Gewährleistung der Serialisierbarkeit}
+
+%Codebeispiel: Serialisierbarkeit
+	\begin{lstlisting}
+	conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);	
+	\end{lstlisting}	
+	
+	
+	
+	\begin{figure}[h]
+	\includegraphics[scale=0.5]{Messung2.png}
+	\caption{Die erste Messung, die unterbrechungslos durchlief und bei der auf Serialisierbarkeit geachtet wurde.}
+	\end{figure}
+	
+	\subsection{Messung 3: Einsetzen eines Rollbacks}
+
+%Codebeispiel: RollBack
+	\begin{lstlisting}%[style=framed,label=some-code,caption=Some Code]
+	
+ try {
+  conn.commit();
+ } catch (SQLException e) {
+  try {
+  e.printStackTrace();
+   conn.rollback();
+  } catch (SQLException e2) {
+   conn.rollback();
+  }
+ }
+ stmt.close();
+	\end{lstlisting}
+
+	\begin{figure}[h]
+	\includegraphics[scale=0.5]{Messung3.png}
+	\caption{Das Einfügen des Rollbacks senkte die erzielte Zahl an Tps etwas.}
+	\end{figure}	
+	
+	\subsection{Messung 4: Einführung von Prepared Statements}
+
+%Codebeispiel: Prepared Statements
+	\begin{lstlisting}
+	
+	\end{lstlisting}
+	
+	\noindent
+	Die durchgeführten Veränderungen bewirkten zunächst eine Verbesserung im Vergleich zu Messung 3. Ein Blick auf die durchschnittliche Transaktionszahl pro Sekunde pro Rechner offenbart jedoch, dass es mit jedem verwendeten Client-Rechner weniger Tps werden -- bei Last 2 liegt der Durchschnitt nur knapp über dem Ergebnis von Messung 3 und bei Last 3 sogar deutlich darunter.
+	
+	\begin{figure}[h]
+	\includegraphics[scale=0.5]{Messung4.png}
+	\caption{	Die durchgeführten Veränderungen bewirkten zunächst eine Verbesserung im Vergleich zu Messung 2 und 3.}
+	\end{figure}
+
+	\subsection{Messung 5: Umstellung der SQL-Statements}
+
+			erst accounts, dann tellers, dann branch
+			Diagnose durchführen, wieviele Rollbacks durchgeführt werden
+			Die durchschnittliche Performance pro Rechner (und auch pro Thread) sank in Messung 4 stark bei zunehmender Rechnerzahl:
+			Hinweis darauf, dass etwas im Programm nicht hinhaut oder dass Konflikte entstehen
+			wg. möglichen Konflikten werden Tupel oder schlimmstenfalls Seitenrahmen kurzzeitig gesperrt, was den Zugriff durch andere Operationen verhindert.
+			Die Überlegung bei der Umgestaltung der SQL-Statements war es, die Statement-Bestandteile, bei denen ein Konflikt am wahrscheinlichsten ist als letztes auszuführen, damit die Sperrung für die kürzest mögliche Zeit stattfindet. Die Wahrscheinlichkeit für einen Konflikt machten wir an der Größe der Tabellen fest: BRANCHES hatte lediglich n Tupel, TELLERS hingegen $10 \cdot n$ und ACCOUNTS gar $100000 \cdot n$. Ergo ordneten wir die Ausführung der Statements von unserer ursprünglichen Reihenfolge um, wie folgende Tabelle darlegt:
+			Gegenüberstellung (tabellarisch oder zwei Code-Beispiele in Minipages nebeneinander)
+			alt: BRANCHES, TELLERS, ACCOUNTS
+			neu: ACCOUNTS, TELLERS, BRANCHES
+	
+	\subsection{Nicht durchgeführte Änderungen}
+
+\subsubsection*{stored procedures}
+
+\subsubsection*{•}
+%http://stackoverflow.com/questions/8559443/why-execute-stored-procedures-is-faster-than-sql-query-from-a-script
+%http://stackoverflow.com/questions/12948312/why-stored-procedure-is-faster-than-query
+		
+
+%Auch am Datenbankmanagementsystem fanden wir Stellschrauben, um die Performance -- zumindest theoretisch -- zu verbessern.
+
+	%Da sich bei der lokalen Messung die \emph{virtual machine} den Speicher mit dem Client teilen muss, erhöhten wir den der VM zugewiesenen Speicher auf 2 GB.
+	%\noindent
+	%Wir setzten die Einstellung \glqq innodb\_flush\_log\_at\_trx\_commit\grqq\ auf 0, sodass der Buffer etwa einmal pro Sekunde in das Log-File geschrieben wird. Unser Ziel war mit dieser Einstellung, den Logvorgang minimalistisch zu halten und damit den In- und Output der Festplatte zu reduzieren. Es ist zwar möglich, mit dieser Einstellung bis zu einer Sekunde an Vorgängen zu verlieren, sollte es zu einem Fehler kommen, jedoch ist dies für unsere Zwecke zu verantworten, da wir die Daten gesichert haben und erneut einspeisen können.\footnote{http://dev.mysql.com/doc/refman/5.7/en/innodb-parameters.html.}
+%	innodb_flush_log_at_trx_commit=1
+%to
+%	innodb_flush_log_at_trx_commit=0
+%Reduce Disk Input/Output
+
+%\noindent
+%Des Weiteren erhöhten wir die \glqq innodb\_buffer\_pool\_size\grqq\ von 8M auf 3G, was letztlich zu einer höheren Geschwindigkeit durch mehr In- und Output-Operationen führen sollte.
+%	innodb_buffer_pool_size=8M
+%to
+%	innodb_buffer_pool_size=3G
+%More Input/Output in RAM (faster)
+
+%\noindent
+%Die \glqq innodb\_log\_file\_size\grqq\ beeinflusst, wie oft das Logfile geschrieben werden muss. Dies spricht für ein großes Logfile. Auf der anderen Seite verwendet es ebenfalls RAM, den wir anderweitig gut gebrauchen konnten, weshalb wir uns für einen Kompromiss von 32M entschieden haben. Das ist eine Senkung um 16M von der Standardeinstellung.\footnote{http://dev.mysql.com/doc/refman/5.7/en/innodb-parameters.html\#sysvar\_innodb\_log\_file\_size}
+	%innodb_log_file_size=48M
+%to
+	%innodb_log_file_size=32M
+%Small log = More Page Flush
+
+%\noindent
+%Mit der Einstellung \glqq innodb\_flush\_method$=$0\_DIRECT\grqq\ wählten wir die Option, die mit den wenigsten Umständen ihre Arbeit macht. Zudem definierten wir\\ \glqq innodb\_read\_io\_threads$=$4\grqq\ und \glqq innodb\_read\_io\_threads$=$8\grqq , weil beide in der ini nicht vorkamen. 4 für \glqq read\grqq\ und 4 für \glqq write\grqq\ entsprechen dem Standard.\footnote{http://dev.mysql.com/doc/refman/5.7/en/innodb-parameters.html.} Unsere Einstellung sollte die Wichtigkeit des Schreibvorgangs betonen, indem sie diesem mehr Threads zuwies.
+%innodb_flush_method=0_DIRECT
+%innodb_read_io_threads=4
+%innodb_write_io_threads=8
+
+%\noindent
+%Als letztes nahmen wir uns die Eigenschaft \glqq innodb\_doublewrite\grqq\ vor. Sie sorgt dafür, dass alle Daten zweifach gespeichert werden, einmal im \emph{doublewrite buffer} und zudem in den tatsächlichen Dateien. Das wollten wir nicht und befahlen dem System, dies zu skippen.
+%skip-innodb_doublewrite	
+
+
+\section{Fazit}
+
+%Diagramm mit ge
+%onlinecharttool.com
+
+
+
+\newpage
+\section{Anhang}
+\subsection{Messergebnisse}
+\begin{tabular}{l|crrrl}
+&Messung&Last 1&Last 2&Last 3&Bemerkungen\\\hline
+Tps/Rechner&1&8,85&0&0&Initialtest mit einem Load Driver,\\ 
+Tps gesamt&&8,85&0&0&Kein Prepared Stmt. Keine Rollbacks,\\
+TX gesamt&&k.\,A&0&0&Vorzeitiger Abbruch der Verbindung.\\\hline
+Tps/Rechner&2&75,1\footnotemark &0&0&Serialisierbarkeit gewährleistet,\\
+Tps gesamt&&75,1&0&0&Test auf Laptop.\\
+TX gesamt&&k.\,A&0&0&\\\hline
+Tps/Rechner&3&69,53&0&0&inklusive Rollback\\
+Tps gesamt&&69,53&0&0&\\
+TX gesamt&&20874&0&0&\\\hline
+\o\ Tps/Rechner&4&79,6\footref{fn:genau}&70,35&58,86&Prepared Statements,\\
+Tps gesamt&&79,6&140,17&176,57&Verbesserungen am DBMS,\\
+\o\ TX/Rechner&&23923&21001&17621&Leeren History.\\
+TX gesamt&&23923&42002&52863&\\\hline
+&Messung&Last 1&Last 2&Last 3&Bemerkungen\\
+\end{tabular}
+\footnotetext{Genauere Messwerte wurden leider nicht protokolliert. \label{fn:genau}}
+
+\newpage
+\subsection{Finaler Quellcode}
+\subsubsection*{Main}
+\begin{lstlisting}
+
+\end{lstlisting}
+\subsubsection*{DBmgmt}
+\begin{lstlisting}
+
+\end{lstlisting}
+\subsubsection*{LoadDriver}
+\begin{lstlisting}
+
+\end{lstlisting}
+%Quellcode in den Anhang
+	tbd. (inclusive Einrückung + kleine Größe; evtl. Querformat)
+	
+\end{document}
