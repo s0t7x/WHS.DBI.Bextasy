@@ -171,7 +171,7 @@ public class Main {
 				int temp_branchid = ReadConsole.nextInt();
 				System.out.print("Enter DELTA: ");
 				int temp_delta = ReadConsole.nextInt();
-				DB_conn_main.Deposit(temp_accid, temp_tellerid, temp_branchid, temp_delta);
+				DB_conn_main.deposit(temp_accid, temp_tellerid, temp_branchid, temp_delta);
 				break;
 			case 3:
 				System.out.print("Could do manual analyse here, but its not coded yet\n");

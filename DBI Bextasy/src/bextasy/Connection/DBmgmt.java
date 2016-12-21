@@ -32,14 +32,14 @@ public class DBmgmt extends Thread {
 		UserName = _UserName;
 		Password = _Password;
 		System.out.println("Ready to connect to " + _ServerAddress);
-		Connect();
+		connect();
 	}
 
 	/**
 	 * Connects to the Database defined in this object It's not Public because
 	 * it is only used by the class itself in the constructor
 	 */
-	void Connect() {
+	void connect() {
 		// Try to establish a connection
 		System.out.println("Connect to " + ServerAddress + " with given credentials for " + UserName + "...");
 		try {
@@ -95,7 +95,7 @@ public class DBmgmt extends Thread {
 	 * @return New Balance for ACCID
 	 * @throws SQLException
 	 */
-	public static int Deposit(int accid, int tellerid, int branchid, int delta) throws SQLException {
+	public static int deposit(int accid, int tellerid, int branchid, int delta) throws SQLException {
 		int newBalance = getBalance(accid) + delta;
 
 		String string30 = "123456789012345678901234567890";
@@ -153,7 +153,7 @@ public class DBmgmt extends Thread {
 	 * @return Amount of Deposits with given Value delta
 	 * @throws SQLException
 	 */
-	public static int Analyse(int delta) throws SQLException {
+	public static int analyse(int delta) throws SQLException {
 		int count = 0;
 		Statement stmt = conn.createStatement();
 		ResultSet rs = stmt.executeQuery("SELECT COUNT(*) AS count FROM history WHERE delta=" + delta);
