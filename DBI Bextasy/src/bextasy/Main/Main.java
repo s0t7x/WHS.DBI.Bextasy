@@ -213,6 +213,7 @@ public class Main {
 		for (int i = 0; i < drivers; i++) {
 			threads[i].join();
 		}
+		System.out.println("Rollbacks: " + DB_conn_main.RollbackCounter);
 		DB_conn_main.conn.close();
 	}
 }

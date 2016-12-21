@@ -14,6 +14,7 @@ public class DBmgmt extends Thread {
 	public String DatabaseName;
 	public String UserName;
 	public String Password;
+	public static int RollbackCounter = 0;
 	public static Connection conn = null;
 	// -------------------------------------
 
@@ -121,20 +122,13 @@ public class DBmgmt extends Thread {
 		stmt.executeUpdate("INSERT INTO history(accid, tellerid, delta, branchid, accbalance, cmmnt)" + "VALUES("
 				+ accid + "," + tellerid + "," + delta + "," + branchid + "," + newBalance + ",'" + string30 + "')");
 		
-		// conn.commit();
-//		stmt.executeUpdate("UPDATE branches SET balance=balance+" + delta + " WHERE branchid=" + branchid);
-//		stmt.executeUpdate("UPDATE tellers SET balance=balance+" + delta + " WHERE tellerid=" + tellerid);
-//		stmt.executeUpdate("UPDATE accounts SET balance=balance+" + delta + " WHERE accid=" + accid);
-//		stmt.executeUpdate("INSERT INTO history(accid, tellerid, delta, branchid, accbalance, cmmnt)" + "VALUES("
-//				+ accid + "," + tellerid + "," + delta + "," + branchid + "," + newBalance + ",'" + string30 + "')");
-//		// conn.commit();
-		// stmt.executeQuery("SET FOREIGN_KEY_CHECKS=1");
 		try {
 			conn.commit();
 		} catch (SQLException e) {
 			try {
 				e.printStackTrace();
 				conn.rollback();
+				RollbackCounter++;
 			} catch (SQLException e2) {
 				conn.rollback();
 			}
