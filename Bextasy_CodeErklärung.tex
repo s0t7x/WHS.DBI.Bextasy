@@ -1,0 +1,37 @@
+\section{Aufbau des Programms}
+	\subsection{Überblick}
+		\emph{Brextasy} wurde allein für diese Praktikumsaufgabe geschrieben und versucht, auf jeglichen für die Lösung der Aufgabe nicht benötigten Overhead zu verzichten. Es weist eine kleine Menüführung auf, die raschen Einstieg in die nötigen Programmabläufe bietet.
+		Brextasy besteht aus drei Klassen, die die zentralen Aufgaben übernehmen. Diese werden im Folgenden vorgestellt. Der vollständige Code in seiner finalen Version befindet sich im Anhang.
+	\subsection{Die Klasse \emph{Main}}
+	Die Klasse Main der Application Bextasy beinhaltet die Methode Main. Diese wird beim Start des Programms aufgerufen.
+	Bextaxy stellt in dieser Methode ein Konsolenbasiertes Menü dar, über welches der Nutzer interaktiv auf verschiedene Funktionen des Programms zugreifen und diese ausführen kann.
+	Die Menüführung ist sehr simpel gehalten: Die verschieden Menüpunkte wie z.B. "[1] Manage Connection" werden in der Konsole dargestellt. Der Nutzer tippt die vorhergehende Zahl für seine Auswahl ein und bestätigt die Eingabe mit drücken der Return-Taste.
+	Die Menüführung ist so entworfen, dass der Nutzer in diversen Untermenüs weitere Auswahlmöglichkeiten hat.
+	Auch wenn dies nicht einer besonders effizienten Entwicklung entspricht (z.B. Hätten auch Startparameter oder sogar garkeine Parameter benutzt werden können) stehen Nutzerfreundlichkeit und Vielseitigkeit hierbei im Vordergrund.
+
+	\subsection{Die Klasse \emph{DBmgmt}}
+	Die gesamte Klasse DBmgmt, was für "Database Management" stehen soll, dient zur Verbindungsherstellen und enthält die Methoden "getBalance", "deposit" und "analyse", welche in der Praktikumsaufgabe definiert sind.
+Der Constructor der Klasse ist so entwickelt, dass er mit den Parametern "\_ServerAddress", "\_DatabaseName", "\_UserName" und "\_Password" aufgerufen werden muss.
+Sobald ein Objekt der Klasse mit diesen Parametern erstellt wird, wird die Klasseneigene Methode "connect()" aufgerufen.
+
+		\subsubsection{Die Methode \emph{connect}}
+ 		Mit Aufruf der Methode "connect()" wird versucht via JDBC eine Verbindung zum Server auf zu bauen. Die Verbindungsengeschaften sind vom Constructor, welcher diese als Parameter übernimmt, in der Klasse hinterlegt.
+		"AutoCommit" wird direkt nach Verbindungsaufbau auf "false" gesetzt, damit manuelle commits durchgeführt werden können.
+		"TransactionIsolation" wird mit der Konstanten "Connection.TRANSACTION\_SERIALIZABLE" gesetzt, um die Serialisierbarkeit zu gewährleisten.
+
+		\subsubsection{Die Methode \emph{getBalance}}
+		Als Eingabeparameter wird der Wert einer Kontonummer (ACCID) erwartet. Die Methode führt eine einfache SQLQuery durch und liefert den zur Kontonummer gehörigen Kontostand (BALANCE) als Rückgabewert.
+
+		\subsubsection{Die Methode \emph{deposit}}
+		Von dieser Methode wird als Eingabeparameter jeweils ein Wert für die Kontonummer (ACCID), die Geldautomatennummer (TELLERID), die Zweigstellennummer (BRANCHID) und den Einzahlungsbetrag (DELTA).
+		Mit diesen Parametern wird von der Methode sowohl in der Relation BRANCHES, als auch in der Relation TELLERS die zu BRANCHID bzw. zu TELLERID gehörige Bilanzsummer BALANCE aktualisiert werden. Ebenfalls wird BALANCE in der Relation ACCOUNTS zu der dazugehörigen ACCID aktualisiert.
+		In der Relation HISTORY wird die Einzahlung als aktualisierter Konstostand (ACCOUNTS.BALANCE) protokoliert.
+		Die Methode liefert als Ausgabewert den neuen Kontostand der ACCID aus.
+		
+		\subsubsection{Die Methode \emph{analyse}}
+		Diese Methode liefert als Rückgabewert die Anzahl der bisher protokollierten Einzahlung mit genau diesem Betrag.
+		Dazu muss ihr als Eingabeparameter der Einzahlungsbetrag (DELTA) mitgegeben werden.
+
+	\subsection{Die Klasse \emph{LoadDriver}}
+	Objekte der Klasse LoadDriver können als eigener Thread ausgeführt werden. Ein Thread der Klasse wählt in einer 10 Minütigen Schleife zufällig eine der obigen Methoden aus DBmgmt und führt diese mit sinnvollen Parametern aus. Die relative Gewichtung für die zufällige Auswahl liegt für entweder "getBalance", "deposit" oder "analyse" bei 35 zu 50 zu 15. Zwischen einzelnen Transaktionen wartet der Thread genau 50 msec. Dies ist eine festgelegte "Nachdenkzeit" (engl. Think Time), welche eingehalten wird, bevor die nächste Lassttransaktion startet.
+Das Hauptprogramm wird nach aufruf des LoadDrivers pausiert, bis alle Threads, welche aufgerufen wurden, durchlaufen und beendet sind.
